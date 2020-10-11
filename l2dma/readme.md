@@ -2,8 +2,8 @@
 
 Video DMA for capturing scanlines from a two camera system. Ignores SOF (tuser) signal. Expected video format is YUV 4:2:2, 16 bits per pixel, and 2 pixels per clock.
 ```
-Bit   | Contents
-----------------
+Bit   | Description
+-------------------
  0- 7 | Y1 
  8-15 | U 
 16-23 | Y2
@@ -13,7 +13,7 @@ Bit   | Contents
 ### 00h - CONTROL
 ```
 Bit |     | Description
--------------------------------------------------------------------------------------------
+-----------------------
 0   | R/W | start / busy (write '1' to start capturing, bit stays as '1' until DMA is done)
 1   | R   | fifo 1 full
 2   | R   | fifo 2 full
