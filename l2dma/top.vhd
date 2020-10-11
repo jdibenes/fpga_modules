@@ -8,7 +8,7 @@
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
--- Description: 
+-- Description: v3
 -- 
 -- Dependencies: 
 -- 
@@ -125,7 +125,7 @@ architecture behavioral of top is
 --------------------------------------------------------------------------------
 signal reset : std_logic := '0';
 
-signal count : std_logic_vector(11 downto 0) := (others => '0');
+signal count : std_logic_vector(15 downto 0) := (others => '0');
 signal base0 : std_logic_vector(31 downto 0) := (others => '0');
 signal base1 : std_logic_vector(31 downto 0) := (others => '0');
 

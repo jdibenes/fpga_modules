@@ -53,7 +53,7 @@ port (
     
     -- control
     start : in std_logic;
-    count : in std_logic_vector(11 downto 0);
+    count : in std_logic_vector(15 downto 0);
     
     -- axis state
     idle : out std_logic
@@ -67,13 +67,12 @@ type axis_state is (axis_reset, axis_idle, axis_first, axis_push);
 signal state      : axis_state := axis_reset;
 signal next_state : axis_state := axis_reset;
 
-signal count_ff : unsigned(11 downto 0) := (others => '0');
+signal count_ff : unsigned(15 downto 0) := (others => '0');
 
 signal zerocount : std_logic := '0';
 signal eol       : std_logic := '0';
 signal decrement : std_logic := '0';
 signal last      : std_logic := '0';
-signal push      : std_logic := '0';
 --------------------------------------------------------------------------------
 begin
 --------------------------------------------------------------------------------
@@ -81,24 +80,24 @@ begin
 tready <= '1';
 
 -- FIFO write
-din  <= tdata;
-wren <= push and tvalid;
+din <= tdata;
 
 zerocount <= '1' when count_ff = 0 else '0';
 eol       <= tvalid and tlast;
-decrement <= push and eol;
 last      <= zerocount and eol;
 
-axis_sel: process (state, start, eol, last)
+axis_sel: process (state, start, eol, tvalid, last)
 begin
-    idle   <= '0';
-    push   <= '0';
+    next_state <= state;
+    idle       <= '0';
+    wren       <= '0';
+    decrement  <= '0';
     
-    case state is
-    when axis_reset =>                                      next_state <= axis_idle;
-    when axis_idle  => idle   <= '1'; if (start = '1') then next_state <= axis_first; else next_state <= axis_idle;  end if;
-    when axis_first =>                if (eol   = '1') then next_state <= axis_push;  else next_state <= axis_first; end if;
-    when axis_push  => push   <= '1'; if (last  = '1') then next_state <= axis_idle;  else next_state <= axis_push;  end if;
+    case (state) is
+    when axis_reset =>                                                         next_state <= axis_idle;
+    when axis_idle  => idle <= '1';                      if (start = '1') then next_state <= axis_first; end if;
+    when axis_first =>                                   if (eol   = '1') then next_state <= axis_push;  end if;
+    when axis_push  => wren <= tvalid; decrement <= eol; if (last  = '1') then next_state <= axis_idle;  end if;
     end case;
 end process;
 

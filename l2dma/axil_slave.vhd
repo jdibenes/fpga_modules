@@ -60,7 +60,7 @@ port (
     
     -- control
     start : out std_logic;
-    count : out std_logic_vector(11 downto 0);
+    count : out std_logic_vector(15 downto 0);
     base0 : out std_logic_vector(31 downto 0);
     base1 : out std_logic_vector(31 downto 0);
     busy  : in std_logic;
@@ -87,7 +87,7 @@ signal waddr : std_logic_vector(7 downto 0) := (others => '0');
 
 signal base0_ff : std_logic_vector(31 downto 0) := (others => '0');
 signal base1_ff : std_logic_vector(31 downto 0) := (others => '0');
-signal count_ff : std_logic_vector(11 downto 0) := (others => '0');
+signal count_ff : std_logic_vector(15 downto 0) := (others => '0');
 
 signal full0_ff : std_logic := '0';
 signal full1_ff : std_logic := '0';
@@ -155,7 +155,7 @@ begin
         if (wdata_hs = '1') then
             case (waddr) is
             when x"0"   => 
-            when x"4"   => count_ff <= wdata(11 downto 0);
+            when x"4"   => count_ff <= wdata(15 downto 0);
             when x"8"   => base0_ff <= wdata;
             when x"C"   => base1_ff <= wdata;
             when others =>
@@ -170,8 +170,8 @@ begin
         if (raddr_hs = '1') then
             case (araddr) is
             when x"0"   => rdata <= (0 => busy, 1 => full0_ff, 2 => full1_ff, others => '0');
-            when x"4"   => rdata(11 downto  0) <= count_ff;
-                           rdata(31 downto 12) <= (others => '0');
+            when x"4"   => rdata(15 downto  0) <= count_ff;
+                           rdata(31 downto 16) <= (others => '0');
             when x"8"   => rdata <= base0_ff;
             when x"C"   => rdata <= base1_ff;
             when others => rdata <= (others => '1');

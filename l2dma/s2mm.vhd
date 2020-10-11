@@ -74,7 +74,7 @@ port (
     
     -- control
     start : in std_logic;
-    count : in std_logic_vector(11 downto 0);
+    count : in std_logic_vector(15 downto 0);
     base  : in std_logic_vector(31 downto 0);
     busy  : out std_logic;
     full  : out std_logic
@@ -84,18 +84,17 @@ end s2mm;
 architecture behavioral of s2mm is
 --------------------------------------------------------------------------------
 component fifo_generator_0 is
-PORT (
-    clk         : IN  STD_LOGIC;
-    srst        : IN  STD_LOGIC;
-    din         : IN  STD_LOGIC_VECTOR( 31 DOWNTO 0);
-    wr_en       : IN  STD_LOGIC;
-    rd_en       : IN  STD_LOGIC;
-    dout        : OUT STD_LOGIC_VECTOR(127 DOWNTO 0);
-    full        : OUT STD_LOGIC;
-    empty       : OUT STD_LOGIC;
-    prog_empty  : OUT STD_LOGIC;
-    wr_rst_busy : OUT STD_LOGIC;
-    rd_rst_busy : OUT STD_LOGIC
+port (
+    clk         : in  std_logic;
+    srst        : in  std_logic;
+    din         : in  std_logic_vector( 31 DOWNTO 0);
+    wr_en       : in  std_logic;
+    rd_en       : in  std_logic;
+    dout        : out std_logic_vector(127 DOWNTO 0);
+    full        : out std_logic;
+    empty       : out std_logic;
+    wr_rst_busy : out std_logic;
+    rd_rst_busy : out std_logic
 );
 end component;
 
@@ -107,14 +106,13 @@ signal wren   : std_logic := '0';
 signal wbusy  : std_logic := '0';
 signal rden   : std_logic := '0';
 signal empty  : std_logic := '0';
---signal packet : std_logic := '0';
 signal rbusy  : std_logic := '0';
-signal addrcycle : std_logic := '0';
 
-signal idle : std_logic := '0';
+signal aximmidle : std_logic := '0';
+signal axisidle  : std_logic := '0';
 begin
 --------------------------------------------------------------------------------
-busy <= wbusy or rbusy or (not idle) or (not empty); --or (not addrcycle);
+busy <= wbusy or rbusy or (not aximmidle) or (not axisidle);
 
 axis : entity work.axis_slave
 port map (
@@ -141,7 +139,7 @@ port map (
     count => count,
     
     -- axis state
-    idle => idle 
+    idle => axisidle 
 );
 
 s2mm_fifo : fifo_generator_0
@@ -152,14 +150,13 @@ port map (
     -- FIFO write
     din         => din,
     wr_en       => wren,
-    full        => full, -- use for dbg
+    full        => full,
     wr_rst_busy => wbusy,
     
     -- FIFO read
     rd_en       => rden,
     dout        => dout_big,
-    empty       => empty, -- use for dbg
-    prog_empty  => open,--packet,
+    empty       => empty,
     rd_rst_busy => rbusy 
 );
 
@@ -208,10 +205,10 @@ port map (
     base  => base,
     
     -- axis state
-    idle => idle,
+    axisidle => axisidle,
     
     -- aximm state
-    addrcycle => addrcycle
+    aximmidle => aximmidle
 );
 --------------------------------------------------------------------------------
 end behavioral;

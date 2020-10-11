@@ -71,21 +71,16 @@ port (
     base  : in std_logic_vector(31 downto 0);
 
     -- axis state
-    idle : in std_logic;
+    axisidle : in std_logic;
     
     -- aximm state
-    addrcycle : out std_logic
+    aximmidle : out std_logic
 );
 end aximm_master;
 
 architecture behavioral of aximm_master is
 --------------------------------------------------------------------------------
-type aximm_state is (aximm_reset, aximm_addr, aximm_data, aximm_wait, aximm_resp);
-
--- 3840 pixels with 2 bytes per pixel = 7680 bytes
--- 480 transfers of 16 bytes
--- 15 bursts of 32 transfers of 16 bytes
-constant burstlength : unsigned(7 downto 0) := x"FF";
+type aximm_state is (aximm_reset, aximm_addr, aximm_data, aximm_wait, aximm_fill, aximm_resp);
 
 signal state      : aximm_state := aximm_reset;
 signal next_state : aximm_state := aximm_reset;
@@ -93,71 +88,55 @@ signal next_state : aximm_state := aximm_reset;
 signal base_ff  : unsigned(31 downto 0) := (others => '0');
 signal count_ff : unsigned( 7 downto 0) := (others => '0');
 
-signal addr_valid : std_logic := '0';
-signal data_valid : std_logic := '0';
+signal addrvalid : std_logic := '0';
+signal datavalid : std_logic := '0';
 
 signal data_hs : std_logic := '0';
 signal addr_hs : std_logic := '0';
 
 signal zerocount : std_logic := '0';
-signal last      : std_logic := '0';
-signal done      : std_logic := '0';
-signal strobe : std_logic := '0';
 --------------------------------------------------------------------------------
 begin
 --------------------------------------------------------------------------------
 -- write address channel
 awaddr   <= std_logic_vector(base_ff);
-awcache  <= "0011";
+awcache  <= "0011"; -- modifiable, bufferable
 awlock   <= "0";
-awprot   <= "010";
+awprot   <= "010";  -- non secure
 awqos    <= "0000";
 awregion <= "0000";
-awlen    <= std_logic_vector(burstlength);
-awsize   <= "100"; -- 16 bytes (maximum supported)
-awburst  <= "01";  -- increment
-awvalid  <= addr_valid;
+awlen    <= x"FF";  -- 256 transfers
+awsize   <= "100";  -- 16 bytes (maximum supported)
+awburst  <= "01";   -- increment
+awvalid  <= addrvalid;
 
 -- write data channel
 wdata  <= dout;
 wstrb  <= x"FFFF";
 wlast  <= zerocount;
-wvalid <= data_valid;
+wvalid <= datavalid;
 
--- FIFO read
-rden <= strobe; --(addr_hs or (data_hs and (not zerocount))) and (not empty); -- normal FIFO (no FWFT)
-
-addr_hs <= addr_valid and awready;
-data_hs <= data_valid and wready;
+addr_hs <= addrvalid and awready;
+data_hs <= datavalid and wready;
 
 zerocount <= '1' when count_ff = 0 else '0';
 
-aximm_sel : process (state, empty, addr_hs, wready, zerocount, bvalid)
+aximm_sel : process (state, empty, addr_hs, wready, zerocount, bvalid, axisidle)
 begin
-    addr_valid <= '0';
-    data_valid <= '0';
+    next_state <= state;
+    aximmidle  <= '0';
+    addrvalid  <= '0';
+    rden       <= '0';
+    datavalid  <= '0';
     bready     <= '0';
-    strobe <= '0';
-
-    case (state) is
-    when aximm_reset  =>                                                                      next_state <= aximm_addr;
-    when aximm_addr   => addr_valid <= not empty; strobe <= addr_hs; if (addr_hs = '1')                     then next_state <= aximm_data; else next_state <= aximm_addr; end if;    
-    when aximm_data   => data_valid <= '1';
-        if (wready = '1') then
-            if (zerocount = '1') then
-                next_state <= aximm_resp;
-            elsif (empty = '1') then
-                next_state <= aximm_wait;
-            else
-                next_state <= aximm_data;
-                strobe <= '1';
-            end if;
-        else
-            next_state <= aximm_data;
-        end if;
-    when aximm_wait => if (empty = '0') then strobe <= '1'; next_state <= aximm_data; else next_state <= aximm_wait; end if;
     
-    when aximm_resp   => bready     <= '1';       if (bvalid  = '1')                     then next_state <= aximm_addr; else next_state <= aximm_resp; end if;
+    case (state) is
+    when aximm_reset =>                                                                                                                                                next_state <= aximm_addr;
+    when aximm_addr  => aximmidle <= '1'; addrvalid <= not empty; rden <= addr_hs;                                    if (addr_hs = '1')                          then next_state <= aximm_data; end if;    
+    when aximm_data  =>                   datavalid <= '1';       rden <= wready and (not zerocount) and (not empty); if (wready = '1') then if (zerocount = '1') then next_state <= aximm_resp; elsif (empty = '1')    then next_state <= aximm_wait; end if; end if;        
+    when aximm_wait  =>                                           rden <= not empty;                                  if (empty = '0')                            then next_state <= aximm_data; elsif (axisidle = '1') then next_state <= aximm_fill; end if;    
+    when aximm_fill  =>                   datavalid <= '1';                                                           if (wready = '1' and zerocount = '1')       then next_state <= aximm_resp; end if;    
+    when aximm_resp  =>                   bready    <= '1';                                                           if (bvalid  = '1')                          then next_state <= aximm_addr; end if;
     end case;
 end process;
 
@@ -182,102 +161,10 @@ count_fsm : process (clk)
 begin
     if (rising_edge(clk)) then
         if    (reset   = '1') then count_ff <= x"00";
-        elsif (addr_hs = '1') then count_ff <= burstlength;
+        elsif (addr_hs = '1') then count_ff <= x"FF";
         elsif (data_hs = '1') then count_ff <= count_ff - 1;
         end if;
     end if;
 end process;
 --------------------------------------------------------------------------------
 end behavioral;
-
-
-
---type aximm_state is (aximm_reset, aximm_idle, aximm_addr, aximm_data, aximm_resp);
-
----- 3840 pixels with 2 bytes per pixel = 7680 bytes
----- 480 transfers of 16 bytes
----- 15 bursts of 32 transfers of 16 bytes
---constant burstlength : unsigned(7 downto 0) := x"00"; --x"1F";
-
---signal state      : aximm_state := aximm_reset;
---signal next_state : aximm_state := aximm_reset;
-
---signal base_ff  : unsigned(31 downto 0) := (others => '0');
---signal count_ff : unsigned( 7 downto 0) := (others => '0');
-
---signal addr_valid : std_logic := '0';
---signal data_valid : std_logic := '0';
-
---signal data_hs : std_logic := '0';
---signal addr_hs : std_logic := '0';
-
---signal zerocount : std_logic := '0';
---signal last      : std_logic := '0';
---signal done      : std_logic := '0';
-
-
----- write address channel
---awaddr   <= std_logic_vector(base_ff);
---awcache  <= "0000";
---awlock   <= "0";
---awprot   <= "000";
---awqos    <= "0000";
---awregion <= "0000";
---awlen    <= std_logic_vector(burstlength);
---awsize   <= "100";                         -- 16 bytes (maximum supported)
---awburst  <= "00"; --"01";                          -- increment
---awvalid  <= addr_valid;
-
----- write data channel
---wdata  <= dout;
---wstrb  <= x"FFFF";
---wlast  <= zerocount;
---wvalid <= data_valid;
-
----- FIFO read
---rden <= addr_hs or (data_hs and (not zerocount)); -- normal FIFO (no FWFT)
-
---addr_hs <= addr_valid and awready;
---data_hs <= data_valid and wready;
-
---zerocount <= '1' when count_ff = 0 else '0';
-
---last <= wready and zerocount;
---done <= empty and idle;
-
---aximm_sel : process (state, start, empty, addr_hs, last, bvalid, done)
---begin
---    addr_valid <= '0';
---    data_valid <= '0';
---    bready     <= '0';
-
---    case (state) is
---    when aximm_reset  =>                                                  next_state <= aximm_idle;
---    when aximm_idle   =>                          if (start   = '1') then next_state <= aximm_addr;                                                   else next_state <= aximm_idle; end if;
---    when aximm_addr   => addr_valid <= not empty; if (addr_hs = '1') then next_state <= aximm_data;                                                   else next_state <= aximm_addr; end if;    
---    when aximm_data   => data_valid <= '1';       if (last    = '1') then next_state <= aximm_resp;                                                   else next_state <= aximm_data; end if;
---    when aximm_resp   => bready     <= '1';       if (bvalid  = '0') then next_state <= aximm_resp; elsif (done = '1') then next_state <= aximm_idle; else next_state <= aximm_addr; end if;
---    end case;
---end process;
-
-
-
---base_fsm : process (clk)
---begin
---    if (rising_edge(clk)) then
---        if    (reset   = '1') then base_ff <= x"00000000";
---        elsif (start   = '1') then base_ff <= unsigned(base);
---        elsif (addr_hs = '1') then base_ff <= base_ff + (16 * (burstlength + 1));
---        end if;
---    end if;
---end process;
-
---count_fsm : process (clk)
---begin
---    if (rising_edge(clk)) then
---        if    (reset   = '1') then count_ff <= x"00";
---        elsif (addr_hs = '1') then count_ff <= burstlength;
---        elsif (data_hs = '1') then count_ff <= count_ff - 1; -- use rden instead??
---        end if;
---    end if;
---end process;
