@@ -53,19 +53,19 @@ port (
     arvalid : in  std_logic;
     arready : out std_logic;
     araddr  : in  std_logic_vector(7 downto 0);    
-    rvalid : out std_logic;
-    rready : in  std_logic;
-    rdata  : out std_logic_vector(31 downto 0);
-    rresp  : out std_logic_vector( 1 downto 0);
+    rvalid  : out std_logic;
+    rready  : in  std_logic;
+    rdata   : out std_logic_vector(31 downto 0);
+    rresp   : out std_logic_vector( 1 downto 0);
     
     -- control
     start : out std_logic;
     count : out std_logic_vector(15 downto 0);
     base0 : out std_logic_vector(31 downto 0);
     base1 : out std_logic_vector(31 downto 0);
-    busy  : in std_logic;
-    full0 : in std_logic;
-    full1 : in std_logic
+    busy  : in  std_logic;
+    full0 : in  std_logic;
+    full1 : in  std_logic
 );
 end axil_slave;
 
