@@ -23,6 +23,7 @@ Bit
 # L2DMA
 >>>>>>> c4d7ec106d77f9d6b0612524c76f24e47e063fc1
 
+
 Video DMA for capturing scanlines from a two camera system. Ignores SOF (tuser) signal. Expected video format is YUV 4:2:2, 16 bits per pixel, and 2 pixels per clock.
 ```
 Bit   | Description
