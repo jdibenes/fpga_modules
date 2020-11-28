@@ -1,28 +1,4 @@
-<<<<<<< HEAD
-l2dma
-
-Video format:
-
-YUV 4:2:2
-16 bits per pixel
-
-2 pixels per clock
-
-Bit
-
- 0- 7: Y1
-
- 8-15: U
-
-16-23: Y2
-
-24-31: V
-
-
-=======
 # L2DMA
->>>>>>> c4d7ec106d77f9d6b0612524c76f24e47e063fc1
-
 
 Video DMA for capturing scanlines from a two camera system. Ignores SOF (tuser) signal. Expected video format is YUV 4:2:2, 16 bits per pixel, and 2 pixels per clock.
 ```
@@ -60,4 +36,3 @@ Bit  |     | Description
 ------------------------
 0-31 | R/W | Destination address for camera 1
 ```
-
