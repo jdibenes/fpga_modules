@@ -1,6 +1,6 @@
 # RGB2Y
 
-Pipelined RGB to gray conversion. Latency is 4.
+Pipelined RGB to gray conversion. Latency is 4 clock cycles.
 Expected video format is RBG8 with 2 pixels per clock cycle.
 
 Coefficients
