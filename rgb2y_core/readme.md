@@ -20,7 +20,7 @@ Bit     | Description
 
 Output
 ```
-Bit    | Description
+Bit   | Description
 --------------------
 7 - 0 | Y
 ```
