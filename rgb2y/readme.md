@@ -1,6 +1,7 @@
-# RGB2Y_CORE
+# RGB2Y
 
 Pipelined RGB to gray conversion. Latency is 4.
+Expected video format is RBG8 with 2 pixels per clock cycle.
 
 Coefficients
 ```
@@ -13,7 +14,10 @@ Input Format
 ```
 Bit     | Description
 ---------------------
-23 - 16 | R
-15 -  8 | B
- 7 -  0 | G
+47 - 40 | R1
+39 - 32 | B1
+31 - 24 | G1
+23 - 16 | R0
+15 -  8 | B0
+ 7 -  0 | G0
 ```
