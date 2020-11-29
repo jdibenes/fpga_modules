@@ -17,3 +17,10 @@ Bit     | Description
 15 -  8 | B
  7 -  0 | G
 ```
+
+Output
+```
+Bit    | Description
+--------------------
+ 7 - 0 | Y
+```
