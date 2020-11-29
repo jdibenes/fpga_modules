@@ -1,6 +1,6 @@
 # RGB2Y_CORE
 
-Pipelined RGB to gray conversion. Latency is 4.
+Pipelined RGB to gray conversion. Latency is 4 clock cycles.
 
 Coefficients
 ```
