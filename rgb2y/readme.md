@@ -21,3 +21,11 @@ Bit     | Description
 15 -  8 | B0
  7 -  0 | G0
 ```
+
+Output
+```
+Bit    | Description
+--------------------
+15 - 8 | Y1
+ 7 - 0 | Y0
+```
