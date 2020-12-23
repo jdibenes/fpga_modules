@@ -181,15 +181,15 @@ DUT : edges1D_wrapper
 port map (
     CLK        => clk,
     tdata_in   => tdata_in,
-    data_out  => tdata_out,
+    data_out   => tdata_out,
     tlast_in   => tlast_in,
-    eol_out  => tlast_out,
+    eol_out    => tlast_out,
     tready_in  => tready_in,
     tuser_in   => tuser_in,
-    sof_out  => tuser_out,
+    sof_out    => tuser_out,
     tvalid_in  => tvalid_in,
-    valid_out => tvalid_out,
-    threshold => threshold
+    valid_out  => tvalid_out,
+    threshold  => threshold
 );
 
 end behavioral;
