@@ -184,6 +184,7 @@ full0_reg : process (clk)
 begin
     if (rising_edge(clk)) then
         if    (reset = '1') then full0_ff <= '0';
+        elsif (start = '1') then full0_ff <= '0';
         elsif (full0 = '1') then full0_ff <= '1';
         end if;
     end if;
@@ -193,6 +194,7 @@ full1_reg : process (clk)
 begin
     if (rising_edge(clk)) then
         if    (reset = '1') then full1_ff <= '0';
+        elsif (start = '1') then full1_ff <= '0';
         elsif (full1 = '1') then full1_ff <= '1';
         end if;
     end if;
