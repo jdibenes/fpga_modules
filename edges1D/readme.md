@@ -19,4 +19,4 @@ Bit     | Description
 10 -  0 | Fractional portion
 ```
 
-The output interface is compatible with AXI4-Stream, however the SOF and EOL signals may be asserted when the VALID signal is deasserted so it should not be used with AXI4-Stream modules that expect valid LAST and USER signals. The SOF and EOL outputs are provided to be able to determine the vertical coordinate of the detected edges.
+The output interface is compatible with AXI4-Stream, however the SOF and EOL signals may be asserted when the VALID signal is deasserted so it should not be used with AXI4-Stream modules that expect valid LAST and USER signals (i.e. it is not a video signal). The SOF and EOL outputs are provided to be able to determine the vertical coordinate of the detected edges.
