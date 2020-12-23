@@ -91,6 +91,8 @@ signal count_ff : std_logic_vector(15 downto 0) := (others => '0');
 
 signal full0_ff : std_logic := '0';
 signal full1_ff : std_logic := '0';
+
+signal start_st : std_logic := '0';
 --------------------------------------------------------------------------------
 begin
 --------------------------------------------------------------------------------
@@ -144,7 +146,9 @@ begin
     end if;
 end process;
 
-start <= '1' when unsigned(waddr) = 0 and wdata(0) = '1' and wdata_hs = '1' else '0';
+start_st <= '1' when unsigned(waddr) = 0 and wdata(0) = '1' and wdata_hs = '1' else '0';
+
+start <= start_st;
 count <= count_ff;
 base0 <= base0_ff;
 base1 <= base1_ff;
@@ -183,9 +187,9 @@ end process;
 full0_reg : process (clk)
 begin
     if (rising_edge(clk)) then
-        if    (reset = '1') then full0_ff <= '0';
-        elsif (start = '1') then full0_ff <= '0';
-        elsif (full0 = '1') then full0_ff <= '1';
+        if    (reset    = '1') then full0_ff <= '0';
+        elsif (start_st = '1') then full0_ff <= '0';
+        elsif (full0    = '1') then full0_ff <= '1';
         end if;
     end if;
 end process;
@@ -193,9 +197,9 @@ end process;
 full1_reg : process (clk)
 begin
     if (rising_edge(clk)) then
-        if    (reset = '1') then full1_ff <= '0';
-        elsif (start = '1') then full1_ff <= '0';
-        elsif (full1 = '1') then full1_ff <= '1';
+        if    (reset    = '1') then full1_ff <= '0';
+        elsif (start_st = '1') then full1_ff <= '0';
+        elsif (full1    = '1') then full1_ff <= '1';
         end if;
     end if;
 end process;
