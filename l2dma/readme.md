@@ -1,6 +1,6 @@
 # L2DMA
 
-Video DMA for capturing scanlines from a two camera system. Ignores SOF (tuser) signal. Expected video format is YUV 4:2:2, 16 bits per pixel, and 2 pixels per clock. FIFO not included, use FIFO Generator from the Vivado IP catalog to create one.
+Video DMA for capturing scanlines from a two camera system. Ignores SOF (tuser) signal. Expected video format is YUV 4:2:2, 16 bits per pixel, and 2 pixels per clock. This module requires a FIFO, which is not included. Use the FIFO Generator from the Vivado IP catalog to create one.
 ```
 Bit   | Description
 -------------------
@@ -14,7 +14,7 @@ Bit   | Description
 ```
 Bit |     | Description
 -----------------------
-0   | R/W | start / busy (write '1' to start capturing, bit stays as '1' until DMA is done)
+0   | R/W | start / busy (write '1' to start capturing, bit stays as '1' until DMA is done, do not write another 1 before DMA is complete)
 1   | R   | fifo 1 full
 2   | R   | fifo 2 full
 ```
