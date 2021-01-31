@@ -1,4 +1,3 @@
-# vhdl_modules
+# fpga_modules
 
-All tcl scripts are for Vivado 2017.4
-All video modules use AXI Stream interfaces
+All tcl scripts are for Vivado 2017.4. Create a new project then select tools > Run tcl script.
