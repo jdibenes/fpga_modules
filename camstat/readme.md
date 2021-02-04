@@ -6,7 +6,7 @@ Obtains statistics from an AXI Stream Video Signal. Start of frame (SOF) is when
 ### 00h - CONTROL
 ```
 Bit   |     | Description
------------------------
+-------------------------
 0     | R   | SOF detected, stays as '1' until reset
 1     | R   | Number of samples per scanline is valid (see register 08h)
 2     | R   | Number of scanlines per frame is valid (see register 08h)
@@ -21,14 +21,14 @@ Bit   |     | Description
 ### 04h - LY
 ```
 Bit   |     | Description
-------------------------
+-------------------------
  0-15 | R/W | Compare scanline
 16-31 | R   | Current scanline (From 0 to the number given by the bits 16-31 of register 08h)
 ```
 ### 08h - WH
 ```
 Bit   |     | Description
-------------------------
+-------------------------
  0-15 | R   | Number of samples per scanline (multiply by the number of pixels per clock to obtain the width)
 16-31 | R   | Number of scanlines per frame (height)
 ```
