@@ -33,12 +33,13 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity axilite_base is
 port (
-    clk    : in std_logic;
-    resetn : in std_logic;
+    clk   : in std_logic;
+    reset : in std_logic;
 
+    -- axi-lite interface
     awvalid : in  std_logic;
     awready : out std_logic;
-    awaddr  : in  std_logic_vector(31 downto 0);
+    awaddr  : in  std_logic_vector(7 downto 0);
     
     wvalid : in  std_logic;
     wready : out std_logic;
@@ -51,19 +52,23 @@ port (
     
     arvalid : in  std_logic;
     arready : out std_logic;
-    araddr  : in  std_logic_vector(31 downto 0);
+    araddr  : in  std_logic_vector(7 downto 0);
     
     rvalid : out std_logic;
     rready : in  std_logic;
     rdata  : out std_logic_vector(31 downto 0);
-    rresp  : out std_logic_vector(1 downto 0)
+    rresp  : out std_logic_vector(1 downto 0);
+    
+    -- add your signals here
+    reg0_out : out std_logic_vector(31 downto 0);
+    reg1_out : out std_logic_vector(31 downto 0);
+    reg1_in  : in  std_logic_vector(31 downto 0);
+    
+    stb0_out : out std_logic  
 );
 end axilite_base;
 
 architecture Behavioral of axilite_base is
--- reset -----------------------------------------------------------------------
-signal reset : std_logic := '1';
-
 -- write channel ---------------------------------------------------------------
 type axiw_state is (axiw_reset, axiw_addr, axiw_data, axiw_resp);
 
@@ -73,7 +78,7 @@ signal wstate_next : axiw_state := axiw_reset;
 signal hs_waddr : std_logic := '0';
 signal hs_wdata : std_logic := '0';
 
-signal waddr : std_logic_vector(31 downto 0);
+signal waddr : std_logic_vector(7 downto 0);
 
 -- read channel ----------------------------------------------------------------
 type axir_state is (axir_reset, axir_addr, axir_data);
@@ -84,13 +89,13 @@ signal rstate_next : axir_state := axir_reset;
 signal hs_raddr : std_logic := '0';
 
 -- registers -------------------------------------------------------------------
-signal reg_0 : std_logic_vector(31 downto 0);
-signal reg_1 : std_logic_vector(31 downto 0);
+-- add your registers here
+signal reg0 : std_logic_vector(31 downto 0);
+signal reg1 : std_logic_vector(31 downto 0);
+
+signal stb0 : std_logic;
+--------------------------------------------------------------------------------
 begin
-
--- reset -----------------------------------------------------------------------
-reset <= not resetn;
-
 -- write channel fsm -----------------------------------------------------------
 wsel : process(wstate, awvalid, wvalid, bready)
 begin
@@ -145,13 +150,20 @@ begin
 end process;
 
 -- registers -------------------------------------------------------------------
+-- add your strobes and registers here  
+-- registers must be 4-byte aligned (00h, 04h, 08h, 0Ch ...)
+
+-- strobe example (e.g. start signal)
+stb0 <= '1' when hs_wdata = '1' and waddr = x"00" and wdata(0) = '1' else '0';
+
+-- register example
 wdata_reg : process(clk)
 begin
     if (rising_edge(clk)) then
         if (hs_wdata = '1') then
             case (waddr) is
-            when x"00000000" => reg_0 <= wdata;
-            when x"00000004" => reg_1 <= wdata;
+            when x"00" => reg0 <= wdata;
+            when x"04" => reg1 <= wdata;
             when others =>
             end case;
         end if;
@@ -163,11 +175,18 @@ begin
     if (rising_edge(clk)) then
         if (hs_raddr = '1') then
             case (araddr) is
-            when x"00000000" => rdata <= reg_0;
-            when x"00000004" => rdata <= reg_1;
-            when others =>
+            when x"00"  => rdata <= reg0;
+            when x"04"  => rdata <= reg1_in;
+            when others => rdata <= (others => '1');
             end case;
         end if;
     end if;
 end process;
-end Behavioral;
+
+-- outputs
+reg0_out <= reg0;
+reg1_out <= reg1;
+stb0_out <= stb0;
+
+--------------------------------------------------------------------------------
+end behavioral;
