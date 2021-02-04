@@ -68,7 +68,7 @@ port (
 );
 end axilite_base;
 
-architecture Behavioral of axilite_base is
+architecture behavioral of axilite_base is
 -- write channel ---------------------------------------------------------------
 type axiw_state is (axiw_reset, axiw_addr, axiw_data, axiw_resp);
 
